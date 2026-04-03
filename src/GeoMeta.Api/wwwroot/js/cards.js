@@ -17,32 +17,37 @@ window.cardsModule = (() => {
 
     const getCurrentUser = () => window.authModule.getUser();
 
-    const renderCards = (cards, countryId) => {
+    const renderCards = (cards, countryId, targetContainerId = 'cards-grid', skipStats = false) => {
         currentCards = cards;
         currentCountryId = countryId;
 
-        // Update note count in title
-        const titleEl = document.getElementById('detail-title');
-        if (titleEl && titleEl.dataset.baseName) {
-            titleEl.textContent = `${titleEl.dataset.baseName} (${cards.length})`;
+        if (!skipStats) {
+            // Update note count in title
+            const titleEl = document.getElementById('detail-title');
+            if (titleEl && titleEl.dataset.baseName) {
+                titleEl.textContent = `${titleEl.dataset.baseName} (${cards.length})`;
+            }
         }
 
-        renderCategoryFilter(cards);
-        renderStatsBar(cards);
+        if (!skipStats) {
+            renderCategoryFilter(cards);
+            renderStatsBar(cards);
+        }
 
         let filtered = cards;
-        if (activeCategory) {
+        if (activeCategory && !skipStats) {
             filtered = cards.filter(c => c.category === activeCategory);
         }
 
-        const container = document.getElementById('cards-grid');
+        const container = document.getElementById(targetContainerId);
+        if (!container) return;
 
         if (filtered.length === 0) {
             container.innerHTML = `
                 <div class="empty-state">
                     <div class="empty-icon">📝</div>
-                    <h3>${activeCategory ? 'Bu kategoride not yok' : 'Henüz not yok'}</h3>
-                    <p>${activeCategory ? 'Başka bir kategori seç veya yeni not ekle.' : 'Bu ülke için ilk notu ekleyen sen ol!'}</p>
+                    <h3>${activeCategory && !skipStats ? 'Bu kategoride not yok' : 'Henüz not yok'}</h3>
+                    <p>${activeCategory && !skipStats ? 'Başka bir kategori seç veya yeni not ekle.' : 'Kayıt bulunamadı.'}</p>
                 </div>
             `;
             return;

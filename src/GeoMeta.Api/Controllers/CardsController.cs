@@ -54,6 +54,24 @@ public class CardsController : ControllerBase
         return Ok(cards.Select(ToDto));
     }
 
+    [HttpGet("api/cards/global")]
+    public async Task<IActionResult> GetGlobalCards([FromQuery] string? category)
+    {
+        var query = _db.Cards.AsQueryable();
+
+        if (!string.IsNullOrEmpty(category) && category != "Tümü")
+        {
+            query = query.Where(c => c.Category == category);
+        }
+
+        var cards = await query
+            .OrderByDescending(c => c.IsPinned)
+            .ThenBy(c => c.CreatedAt)
+            .ToListAsync();
+
+        return Ok(cards.Select(ToDto));
+    }
+
     [HttpPost("api/countries/{countryId}/cards")]
     public async Task<IActionResult> Create(int countryId, [FromBody] CreateCardRequest request)
     {

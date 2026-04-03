@@ -2,6 +2,9 @@
 window.appModule = (() => {
     let countries = [];
     let deleteCallback = null;
+    let globalCategory = 'Tümü';
+    let globalFilteredCountryIds = null;
+    let globalCards = [];
 
     const init = async () => {
         window.authModule.init();
@@ -140,8 +143,13 @@ window.appModule = (() => {
     const renderSidebar = (countryList) => {
         const sidebar = document.getElementById('sidebar-list');
 
-        // Only show countries with notes (filter out continent entries too)
-        const withNotes = countryList.filter(c => c.cardCount > 0 && !c.name.startsWith('__continent_'));
+        const continentEntries = countryList.filter(c => c.name.startsWith('__continent_'));
+
+        let withNotes = countryList.filter(c => c.cardCount > 0 && !c.name.startsWith('__continent_'));
+
+        if (globalCategory !== 'Tümü' && globalFilteredCountryIds !== null) {
+            withNotes = withNotes.filter(c => globalFilteredCountryIds.includes(c.id));
+        }
 
         const grouped = {};
         withNotes.forEach(c => {
@@ -160,7 +168,7 @@ window.appModule = (() => {
                 <div class="empty-state" style="padding: 40px 16px;">
                     <div class="empty-icon">🌍</div>
                     <h3>Henüz not yok</h3>
-                    <p>Haritadan bir ülkeye tıklayarak ilk notunu ekle.</p>
+                    <p>Haritadan bir ülkeye tıklayarak ilk notunu ekle veya filtreyi değiştir.</p>
                 </div>
             `;
             return;
@@ -169,13 +177,19 @@ window.appModule = (() => {
         sidebar.innerHTML = sortedContinents.map(continent => {
             const cData = continentNames[continent] || {};
             const continentNameTr = cData.nameTr || continent;
+            
+            const pseudoName = '__continent_' + continent;
+            const continentEntry = continentEntries.find(c => c.name === pseudoName);
+            const badgeCount = continentEntry ? continentEntry.cardCount : 0;
+            const noteIconStyle = badgeCount > 0 ? "color: var(--primary);" : "";
+            const badgeHtml = badgeCount > 0 ? `<span class="badge" style="margin-left: 8px;">${badgeCount}</span>` : "";
 
             return `
             <div class="continent-group">
                 <div class="continent-header" onclick="window.appModule.toggleContinent(this)">
                     <span class="arrow">▼</span>
-                    ${escapeHtml(continentNameTr)} (${grouped[continent].length})
-                    <button class="continent-note-btn" data-continent="${escapeAttr(continent)}" title="${continentNameTr} genel notlar">📝</button>
+                    ${escapeHtml(continentNameTr)} (${grouped[continent].length}) ${badgeHtml}
+                    <button class="continent-note-btn" data-continent="${escapeAttr(continent)}" title="${continentNameTr} genel notlar" style="${noteIconStyle}">📝</button>
                 </div>
                 <div class="continent-countries">
                     ${grouped[continent].map(c => `
@@ -552,11 +566,59 @@ window.appModule = (() => {
 
     document.addEventListener('DOMContentLoaded', init);
 
+    const onGlobalFilterChange = async (category) => {
+        globalCategory = category;
+        const btn = document.getElementById('view-all-notes-btn');
+        
+        if (category === 'Tümü') {
+            globalFilteredCountryIds = null;
+            globalCards = [];
+            btn.style.display = 'none';
+            renderSidebar(countries);
+            window.mapModule.updateData(countries);
+            return;
+        }
+
+        try {
+            const data = await window.apiModule.get(`/api/cards/global?category=${encodeURIComponent(category)}`);
+            globalCards = data;
+            const uniqueCountryIds = [...new Set(data.map(c => c.countryId))];
+            globalFilteredCountryIds = uniqueCountryIds;
+            btn.style.display = 'block';
+
+            renderSidebar(countries);
+
+            // Filter map visually
+            const fakeMapData = countries.filter(c => uniqueCountryIds.includes(c.id));
+            window.mapModule.updateData(fakeMapData);
+        } catch (err) {
+            console.error('Filter error', err);
+            showToast('Filtreleme hatası', 'error');
+        }
+    };
+
+    const showGlobalNotes = () => {
+        const title = document.getElementById('global-notes-title');
+        title.innerHTML = `${escapeHtml(globalCategory)} - Tüm Notlar <span class="badge" style="vertical-align:middle; font-size:16px;">${globalCards.length}</span>`;
+        
+        window.cardsModule.renderCards(globalCards, null, 'global-cards-grid', true);
+
+        document.getElementById('map-svg-wrapper').classList.add('hidden');
+        document.getElementById('detail-view').classList.add('hidden');
+        document.getElementById('global-notes-view').classList.remove('hidden');
+    };
+
+    const closeGlobalNotes = () => {
+        document.getElementById('global-notes-view').classList.add('hidden');
+        document.getElementById('map-svg-wrapper').classList.remove('hidden');
+    };
+
     return {
         onLoginSuccess, showMapView, refreshCountries,
         toggleContinent, autoCreateCountry,
         showDeleteModal, closeDeleteModal, showToast,
         toggleTheme, toggleDashboard,
-        openTagEditModal, addTagEditRow: () => addTagEditRow(), saveTagEdit, closeTagEditModal
+        openTagEditModal, addTagEditRow: () => addTagEditRow(), saveTagEdit, closeTagEditModal,
+        onGlobalFilterChange, showGlobalNotes, closeGlobalNotes
     };
 })();

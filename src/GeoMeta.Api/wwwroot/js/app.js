@@ -181,15 +181,15 @@ window.appModule = (() => {
             const pseudoName = '__continent_' + continent;
             const continentEntry = continentEntries.find(c => c.name === pseudoName);
             const badgeCount = continentEntry ? continentEntry.cardCount : 0;
-            const noteIconStyle = badgeCount > 0 ? "color: var(--primary);" : "";
-            const badgeHtml = badgeCount > 0 ? `<span class="badge" style="margin-left: 8px;">${badgeCount}</span>` : "";
+            const noteIconStyle = badgeCount > 0 ? "color: var(--primary);" : "color: rgba(255,255,255,0.4);";
+            const badgeHtml = badgeCount > 0 ? `<span class="badge" style="background:var(--primary); color:white; padding: 2px 6px; font-size:10px; margin-left:4px; vertical-align:middle; line-height:1;">${badgeCount}</span>` : "";
 
             return `
             <div class="continent-group">
                 <div class="continent-header" onclick="window.appModule.toggleContinent(this)">
                     <span class="arrow">▼</span>
-                    ${escapeHtml(continentNameTr)} (${grouped[continent].length}) ${badgeHtml}
-                    <button class="continent-note-btn" data-continent="${escapeAttr(continent)}" title="${continentNameTr} genel notlar" style="${noteIconStyle}">📝</button>
+                    ${escapeHtml(continentNameTr)} <span class="text-muted" style="font-size:11px; font-weight:normal; margin-left:4px;">(${grouped[continent].length} ülke)</span>
+                    <button class="continent-note-btn" data-continent="${escapeAttr(continent)}" title="${continentNameTr} Genel Notları" style="${noteIconStyle} display:flex; align-items:center; padding-left:12px;">📝 ${badgeHtml}</button>
                 </div>
                 <div class="continent-countries">
                     ${grouped[continent].map(c => `

@@ -85,14 +85,16 @@
                 <div class="sidebar-header">
                     <h2>Notlu Ülkeler</h2>
                     <div class="global-filter-container" style="margin-top: 10px;">
-                        <select id="global-category-filter" class="form-input" style="width:100%; padding: 6px; font-size: 13px;" onchange="window.appModule.onGlobalFilterChange(this.value)">
+                        <select id="global-category-filter" class="card-category-select" style="width:100%; border-radius: 6px;" onchange="window.appModule.onGlobalFilterChange(this.value)">
                             <option value="Tümü">Kategori: Tümü (Tüm Notlar)</option>
-                            <option value="Plaka">🚗 Plaka Notları</option>
-                            <option value="Harita">🗺️ Harita İpuçları</option>
-                            <option value="Bitki">🌿 Bitki Örtüsü</option>
-                            <option value="Tarihçe">📜 Tarihçe</option>
-                            <option value="Kapsam">📍 Kapsam</option>
-                            <option value="Diğer">📌 Diğer</option>
+                            <option value="Google Car">🚗 Google Car</option>
+                            <option value="Bollards">🔶 Bollards</option>
+                            <option value="Plaka">🪪 Plaka</option>
+                            <option value="Doğa">🌿 Doğa</option>
+                            <option value="Dil">🗣️ Dil</option>
+                            <option value="Mimari">🏛️ Mimari</option>
+                            <option value="Trafik">🚦 Trafik</option>
+                            <option value="Genel">📝 Genel</option>
                         </select>
                         <button id="view-all-notes-btn" class="btn-primary" style="width:100%; margin-top: 8px; font-size: 13px; padding: 6px; display: none;" onclick="window.appModule.showGlobalNotes()">Tüm Notları Gör</button>
                     </div>

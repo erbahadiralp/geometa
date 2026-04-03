@@ -1562,7 +1562,8 @@ html, body {
     border-radius: var(--radius-sm);
 }
 
-.continent-header:hover .continent-note-btn {
+.continent-header:hover .continent-note-btn,
+.continent-note-btn.has-notes {
     opacity: 1;
 }
 

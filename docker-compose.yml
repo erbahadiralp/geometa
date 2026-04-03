@@ -1,0 +1,37 @@
+version: '3.9'
+
+services:
+  api:
+    build:
+      context: .
+      dockerfile: src/GeoMeta.Api/Dockerfile
+    container_name: geometa_api
+    restart: unless-stopped
+    ports:
+      - "8095:8080"
+    env_file: .env
+    depends_on:
+      db:
+        condition: service_healthy
+    volumes:
+      - geometa_uploads:/app/uploads
+
+  db:
+    image: postgres:16-alpine
+    container_name: geometa_db
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: geometa
+      POSTGRES_USER: geo
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+    volumes:
+      - geometa_pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U geo -d geometa"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+volumes:
+  geometa_uploads:
+  geometa_pgdata:

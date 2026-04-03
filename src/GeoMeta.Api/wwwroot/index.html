@@ -1,0 +1,248 @@
+<!DOCTYPE html>
+<html lang="tr" data-theme="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="GeoMeta — GeoGuessr ülke ipuçları ve meta notları paylaşım uygulaması">
+    <title>GeoMeta</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="/css/app.css">
+</head>
+<body>
+    <!-- =================== LOGIN VIEW =================== -->
+    <div id="login-view" class="view">
+        <div class="login-container">
+            <div class="login-card">
+                <div class="login-header">
+                    <div class="login-logo">🌍</div>
+                    <h1>GeoMeta</h1>
+                    <p class="login-subtitle">Ülke ipuçlarını keşfet, paylaş</p>
+                </div>
+
+                <div class="auth-tabs">
+                    <button id="tab-login" class="auth-tab active" onclick="window.authModule.switchTab('login')">Giriş Yap</button>
+                    <button id="tab-register" class="auth-tab" onclick="window.authModule.switchTab('register')">Kayıt Ol</button>
+                </div>
+
+                <form id="login-form" class="auth-form" onsubmit="return false;">
+                    <div class="form-group">
+                        <label for="login-username">Kullanıcı Adı</label>
+                        <input type="text" id="login-username" placeholder="kullanıcı adınız" autocomplete="username" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="login-password">Şifre</label>
+                        <input type="password" id="login-password" placeholder="••••••" autocomplete="current-password" required>
+                    </div>
+                    <button type="submit" id="login-btn" class="btn-primary">Giriş Yap</button>
+                    <p id="login-error" class="form-error"></p>
+                </form>
+
+                <form id="register-form" class="auth-form hidden" onsubmit="return false;">
+                    <div class="form-group">
+                        <label for="register-username">Kullanıcı Adı</label>
+                        <input type="text" id="register-username" placeholder="en az 3 karakter" autocomplete="username" required minlength="3" maxlength="50">
+                    </div>
+                    <div class="form-group">
+                        <label for="register-password">Şifre</label>
+                        <input type="password" id="register-password" placeholder="en az 6 karakter" autocomplete="new-password" required minlength="6">
+                    </div>
+                    <button type="submit" id="register-btn" class="btn-primary">Kayıt Ol</button>
+                    <p id="register-error" class="form-error"></p>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- =================== MAP VIEW =================== -->
+    <div id="map-view" class="view hidden">
+        <header id="topbar">
+            <div class="topbar-left">
+                <!-- Mobile sidebar toggle -->
+                <button id="mobile-sidebar-toggle" class="btn-icon mobile-only" title="Menü">☰</button>
+                <span class="logo" onclick="window.appModule.showMapView()">🌍 <strong>GeoMeta</strong></span>
+            </div>
+            <div class="topbar-center">
+                <div class="search-box">
+                    <svg class="search-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+                    <input type="text" id="search-input" placeholder="Ülke veya not ara... (/ tuşu)">
+                </div>
+            </div>
+            <div class="topbar-right">
+                <button id="admin-toggle-btn" class="btn-ghost hidden" onclick="window.adminModule.toggleAdminDashboard()" title="Yönetim Paneli">🔑 Yönetim</button>
+                <button id="stats-toggle-btn" class="btn-icon" onclick="window.appModule.toggleDashboard()" title="İstatistikler">📊</button>
+                <button id="theme-toggle-btn" class="btn-icon" onclick="window.appModule.toggleTheme()" title="Tema değiştir">☀️</button>
+                <span id="sync-indicator" class="sync-dot disconnected" title="Bağlantı durumu">●</span>
+                <span id="current-user" class="user-badge"></span>
+                <button class="btn-icon" onclick="window.authModule.showChangePasswordModal()" title="Şifre Değiştir">🔑</button>
+                <button id="logout-btn" class="btn-ghost" onclick="window.authModule.logout()">Çıkış</button>
+            </div>
+        </header>
+
+        <div class="main-layout">
+            <aside id="sidebar">
+                <div class="sidebar-header">
+                    <h2>Notlu Ülkeler</h2>
+                </div>
+                <div id="sidebar-list" class="sidebar-list"></div>
+            </aside>
+
+            <main id="map-container">
+                <div id="map-svg-wrapper"></div>
+                <div id="map-tooltip" class="map-tooltip"></div>
+                <div id="search-results" class="search-results hidden"></div>
+
+                <!-- Statistics Dashboard -->
+                <div id="stats-dashboard" class="stats-dashboard hidden">
+                    <div class="stats-dashboard-header">
+                        <h3>📊 İstatistikler</h3>
+                        <button class="btn-icon modal-close" onclick="window.appModule.toggleDashboard()">✕</button>
+                    </div>
+                    <div id="stats-dashboard-content" class="stats-dashboard-content"></div>
+                </div>
+
+                <!-- Admin Dashboard -->
+                <div id="admin-dashboard" class="stats-dashboard hidden" style="width:400px;">
+                    <div class="stats-dashboard-header">
+                        <h3>🔑 Yönetim Paneli</h3>
+                        <button class="btn-icon modal-close" onclick="window.adminModule.toggleAdminDashboard()">✕</button>
+                    </div>
+                    <div id="admin-dashboard-content" class="stats-dashboard-content" style="padding:10px;"></div>
+                </div>
+            </main>
+        </div>
+    </div>
+
+    <!-- =================== DETAIL VIEW =================== -->
+    <div id="detail-view" class="view hidden">
+        <header id="detail-topbar">
+            <div class="topbar-left">
+                <button class="btn-ghost back-btn" onclick="window.appModule.showMapView()">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="15 18 9 12 15 6"/></svg>
+                    <span class="back-text">Haritaya Dön</span>
+                    <span class="back-text-short">Geri</span>
+                </button>
+            </div>
+            <div class="topbar-center">
+                <span id="detail-title" class="detail-title"></span>
+            </div>
+            <div class="topbar-right">
+                <button class="btn-icon" onclick="window.appModule.openTagEditModal()" title="Etiketleri düzenle">🏷️</button>
+                <button id="theme-toggle-btn-detail" class="btn-icon" onclick="window.appModule.toggleTheme()" title="Tema değiştir">☀️</button>
+                <span id="sync-indicator-detail" class="sync-dot disconnected" title="Bağlantı durumu">●</span>
+                <span id="current-user-detail" class="user-badge"></span>
+                <button class="btn-ghost" onclick="window.authModule.logout()">Çıkış</button>
+            </div>
+        </header>
+
+        <div class="detail-content">
+            <div id="detail-tags" class="detail-tags"></div>
+            <div id="stats-bar" class="stats-bar"></div>
+            <div id="category-filter" class="category-filter"></div>
+            <div id="cards-grid" class="cards-grid"></div>
+
+            <!-- Add Card Bar -->
+            <div id="add-card-bar" class="add-card-bar">
+                <select id="card-category" class="card-category-select">
+                    <option value="Google Car">🚗 Google Car</option>
+                    <option value="Bollards">🔶 Bollards</option>
+                    <option value="Plaka">🪪 Plaka</option>
+                    <option value="Doğa">🌿 Doğa</option>
+                    <option value="Dil">🗣️ Dil</option>
+                    <option value="Mimari">🏛️ Mimari</option>
+                    <option value="Trafik">🚦 Trafik</option>
+                    <option value="Genel">📝 Genel</option>
+                </select>
+                <input type="text" id="card-text-input" placeholder="Yeni not ekle..." class="card-text-input">
+                <label class="photo-attach-btn" title="Fotoğraf ekle">
+                    📎
+                    <input type="file" id="card-photo-input" accept="image/jpeg,image/png,image/webp,image/gif" hidden>
+                </label>
+                <img id="photo-preview" class="photo-preview hidden" src="" alt="preview">
+                <button id="clear-photo-btn" class="btn-icon clear-photo hidden" onclick="window.cardsModule.clearPhotoInput()" title="Fotoğrafı kaldır">✕</button>
+                <button id="add-card-btn" class="btn-primary" onclick="window.cardsModule.addCard()">Ekle</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- =================== TAG EDIT MODAL =================== -->
+    <div id="tag-edit-modal" class="modal-overlay hidden">
+        <div class="modal">
+            <div class="modal-header">
+                <h3>🏷️ Etiketleri Düzenle</h3>
+                <button class="btn-icon modal-close" onclick="window.appModule.closeTagEditModal()">✕</button>
+            </div>
+            <div id="tag-edit-container" class="tags-input-container"></div>
+            <div style="margin-top: 12px; display: flex; gap: 8px;">
+                <button type="button" class="btn-ghost btn-sm" onclick="window.appModule.addTagEditRow()">+ Etiket Ekle</button>
+                <button type="button" class="btn-primary btn-sm" onclick="window.appModule.saveTagEdit()" style="margin-left: auto;">Kaydet</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- =================== DELETE CONFIRM MODAL =================== -->
+    <div id="delete-modal" class="modal-overlay hidden">
+        <div class="modal modal-sm">
+            <div class="modal-header">
+                <h3>⚠️ Silme Onayı</h3>
+                <button class="btn-icon modal-close" onclick="window.appModule.closeDeleteModal()">✕</button>
+            </div>
+            <p id="delete-modal-text" class="modal-text"></p>
+            <div class="modal-actions">
+                <button class="btn-ghost" onclick="window.appModule.closeDeleteModal()">İptal</button>
+                <button id="delete-confirm-btn" class="btn-danger">Sil</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- =================== LIGHTBOX =================== -->
+    <div id="lightbox-overlay" class="lightbox-overlay hidden">
+        <button id="lightbox-close" class="lightbox-close">✕</button>
+        <img id="lightbox-img" class="lightbox-img" src="" alt="Tam ekran görsel">
+    </div>
+
+    <!-- =================== CHANGE PASSWORD MODAL =================== -->
+    <div id="change-pwd-modal" class="modal-overlay hidden">
+        <div class="modal modal-sm">
+            <div class="modal-header">
+                <h3>🔑 Şifre Değiştir</h3>
+                <button class="btn-icon modal-close" onclick="window.authModule.closeChangePasswordModal()">✕</button>
+            </div>
+            <form id="change-pwd-form">
+                <input type="password" id="change-pwd-current" class="auth-input" placeholder="Mevcut Şifre" required>
+                <input type="password" id="change-pwd-new" class="auth-input" placeholder="Yeni Şifre (En az 6 karakter)" required>
+                <div id="change-pwd-error" class="auth-error"></div>
+                <div class="modal-actions" style="margin-top:10px;">
+                    <button type="button" class="btn-ghost" onclick="window.authModule.closeChangePasswordModal()">İptal</button>
+                    <button type="submit" id="change-pwd-btn" class="btn-primary">Güncelle</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- =================== TOAST CONTAINER =================== -->
+    <div id="toast-container" class="toast-container"></div>
+
+    <!-- =================== KEYBOARD SHORTCUTS HINT =================== -->
+    <div class="shortcuts-hint">
+        <span>Esc → Geri</span>
+        <span>/ → Ara</span>
+    </div>
+
+    <!-- Scripts -->
+    <script src="https://d3js.org/d3.v7.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/topojson-client@3"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/microsoft-signalr/8.0.0/signalr.min.js"></script>
+    <script src="/js/country-data.js"></script>
+    <script src="/js/api.js"></script>
+    <script src="/js/auth.js"></script>
+    <script src="/js/map.js"></script>
+    <script src="/js/cards.js"></script>
+    <script src="/js/upload.js"></script>
+    <script src="/js/detail.js"></script>
+    <script src="/js/realtime.js"></script>
+    <script src="/js/admin.js"></script>
+    <script src="/js/app.js"></script>
+</body>
+</html>

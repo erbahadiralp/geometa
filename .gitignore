@@ -1,0 +1,11 @@
+# GeoMeta
+
+bin/
+obj/
+.vs/
+*.user
+*.suo
+*.cache
+.env
+uploads/
+node_modules/
